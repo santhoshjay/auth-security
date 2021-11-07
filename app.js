@@ -4,20 +4,23 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const { userInfo } = require("os");
+const encrypt = require("mongoose-encryption");
 
 const app = express();
 
 app.set("view engine", "ejs");
-
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(express.static("public"));
 
 mongoose.connect("mongodb://localhost:27017/secretsDB");
 
-const userSchema = {
+const userSchema = new mongoose.Schema({
     email: String,
     password: String
-}
+});
+
+const secret = "Thisisourlittlesecret.";
+userSchema.plugin(encrypt, {secret: secret, encryptedFields: ["password"]});
 
 const User = mongoose.model("User", userSchema);
 
@@ -42,7 +45,7 @@ app.post("/register", function(req,res){
     newUser.save(function(err){
         if(!err){
             console.log("New User Document inserted successfully");
-            res.render("register");
+            res.render("login");
         }
         else
             console.log(err);
